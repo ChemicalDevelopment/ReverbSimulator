@@ -5,3 +5,5 @@
 
 *.wav
 
+__pycache__/
+
