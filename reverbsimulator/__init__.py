@@ -4,7 +4,14 @@ import time
 import numpy as np
 import scipy.io.wavfile
 import scipy.signal
-import matplotlib.pyplot as plt
+
+
+try:
+    #import visualization submodule
+    import reverbsimulator.viz
+except:
+    # there was an error in the extra depends
+    pass
 
 def db(x, inv=False):
     if inv:
@@ -25,9 +32,11 @@ def semitones(x, inv=False):
         # from hz to semitones
         return 12.0 * math.log(x / 440.0, 2.0)
 
-def write_wav(filename, data):
-    scipy.io.wavfile.write(filename, 44100, np.int16(data/np.max(np.abs(data)) * 32767))
+def normalize(data):
+    return data/np.max(np.abs(data))
 
+def write_wav(filename, data):
+    scipy.io.wavfile.write(filename, 44100, np.int16(normalize(data) * 32767))
 
 def read_wav(filename):
     _, src = scipy.io.wavfile.read(filename)
@@ -714,109 +723,5 @@ class Scene():
             my_ir = ImpulseResponse.nothing()
         return my_ir
         
-
-        
-
-# for anim
-import turtle
-
-class Animator():
-
-    def __init__(self):
-        self.turtle = turtle.Turtle()
-        self.turtle.speed(0)
-
-        # in pixels/meter
-        self.scale = 80.0
-
-        self.colors = {
-            "misc": (0.2, 0.2, 0.2),
-            "ray": (0.8, 0.0, 0.0),
-            "material": (0.0, 0.0, 1.0),
-            "speaker": (0.0, 0.8, 0.5),
-            "mic": (1.0, 0.0, 0.0)
-        }
-
-    def goto(self, x, y=None):
-        if y is None:
-            self.turtle.goto(self.scale * x[0], self.scale * x[1])
-        else:
-            self.turtle.goto(self.scale * x, self.scale * y)
-
-    def get_direction(self):
-        return math.pi * self.turtle.geth() / 180.0
-
-    def set_direction(self, direction):
-        if isinstance(direction, float) or isinstance(direction, float):
-            self.turtle.seth(180.0 * direction / math.pi)
-        else:
-            self.turtle.seth(180.0 * Point(direction).direction / math.pi)
-            
-
-    direction = property(get_direction, set_direction)
-
-
-    def draw_scene(self, scn):
-        def draw_line(l):
-            self.turtle.up()
-            self.goto(l["start"])
-            self.direction = (l["end"] - l["start"]).direction
-            self.turtle.down()
-            self.goto(l["end"])
-            self.turtle.up()
-
-        def draw_circle(c):
-            self.turtle.up()
-            self.goto(c["center"].x, c["center"].y - c["radius"])
-            self.direction = 0.0
-            self.turtle.down()
-            self.turtle.circle(self.scale * c["radius"])
-            self.turtle.up()
-
-        def draw_geom(g, col):
-            self.turtle.color(col)
-
-            if isinstance(g, Line):
-                draw_line(g)
-            elif isinstance(g, Polygon):
-                for i in g.lines:
-                    draw_line(i)
-            elif isinstance(g, Circle):
-                draw_circle(g)
-
-        def draw_mic(m):
-            self.turtle.color(self.colors["mic"])
-            self.goto(m.pos)
-            self.turtle.dot(size=4)
-
-        for o in scn.objs:
-            if isinstance(o, Geometry):
-                draw_geom(o, self.colors["misc"])
-            elif isinstance(o, Material):
-                draw_geom(o.geom, self.colors["material"])
-            elif isinstance(o, Speaker):
-                draw_geom(o.geom, self.colors["speaker"])
-            elif isinstance(o, Mic):
-                draw_mic(o)
-
-    def draw_ray(self, ray, distance):
-        end_draw = ray.start + Point.polar(radius=distance, direction=ray.direction)
-        self.turtle.up()
-        self.turtle.color(self.colors["ray"])
-        self.goto(ray.start)
-        self.direction = ray.direction
-        self.turtle.down()
-
-        self.goto(end_draw)
-        self.turtle.up()
-
-    def stall(self):
-        turtle.done()
-        
-
-def graph_FFT(audio):
-    print (len(audio))
-    plt.plot(np.fft.rfftfreq(len(audio), 1.0 / 44100.0), np.abs(np.fft.rfft(audio)))
-    plt.show()
-
+ 
 
