@@ -68,15 +68,25 @@ class Animator():
             if isinstance(g, rs.Line):
                 draw_line(g)
             elif isinstance(g, rs.Polygon):
+                #self.turtle.begin_fill()
                 for i in g.lines:
                     draw_line(i)
+                #self.turtle.end_fill()
+
             elif isinstance(g, rs.Circle):
+                #self.turtle.begin_fill()
                 draw_circle(g)
+                #self.turtle.end_fill()
 
         def draw_mic(m):
             self.turtle.color(self.colors["mic"])
             self.goto(m.pos)
             self.turtle.dot(size=4)
+            if m.tag is None:
+                self.turtle.write("mic", align="center", font=("Arial", 14))
+            else:
+                self.turtle.write("mic '%s'" % m.tag, align="center", font=("Arial", 14))
+
 
         for o in scn.objs:
             if isinstance(o, rs.Geometry):
