@@ -4,7 +4,7 @@ import reverbsimulator as rs
 import time
 
 # set to true to animate the bounces
-do_anim = True
+do_anim = False
 
 # create the scene
 scene = rs.Scene()

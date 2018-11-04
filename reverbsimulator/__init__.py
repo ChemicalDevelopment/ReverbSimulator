@@ -9,9 +9,9 @@ import scipy.signal
 try:
     #import visualization submodule
     import reverbsimulator.viz
-except:
+except Exception as e:
     # there was an error in the extra depends
-    pass
+    print ("error while importing viz: '%s'" % str(e))
 
 def db(x, inv=False):
     if inv:

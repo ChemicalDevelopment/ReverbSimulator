@@ -25,3 +25,21 @@ Check out what it can generate as far as resources go:
 
 ![example 1 impulse](/images/example_1_impulse.png?raw=true "example 1 impulse")
 
+
+
+## FAQs/Errors
+
+Q: I'm getting the error:
+
+```
+error while importing viz: 'No module named 'tkinter''
+Traceback (most recent call last):
+  File "./example_1.py", line 42, in <module>
+    anim = rs.viz.Animator()
+AttributeError: module 'reverbsimulator' has no attribute 'viz'
+```
+
+A: You need tkinter support for drawing. Either disable the use of animation, or install it.
+
+
+For Ubuntu, run `sudo apt-get install python3-tk`
