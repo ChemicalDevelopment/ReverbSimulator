@@ -47,7 +47,8 @@ if do_anim:
 
 
 st = time.time()
-result_IR = rs.normalize(scene.create_IR(mic_tag="MainMic", Nsamples=60, max_bounces=80, anim=anim).flattened())
+# change the threads argument to speed it up!
+result_IR = rs.normalize(scene.create_IR(mic_tag="MainMic", Nsamples=500, max_bounces=250, anim=anim, threads=1).flattened())
 print ("gen took %f s" % (time.time() - st))
 
 st = time.time()

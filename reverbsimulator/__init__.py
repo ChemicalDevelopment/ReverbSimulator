@@ -4,7 +4,7 @@ import time
 import numpy as np
 import scipy.io.wavfile
 import scipy.signal
-
+import multiprocessing
 
 try:
     #import visualization submodule
@@ -595,6 +595,16 @@ class Mic(SceneObject):
         self.pos = Point(pos)
 
 
+
+def scene_proc(scene, mic, i, max_bounces, Nsamples):
+    cur_dir = 2.0 * math.pi * i / Nsamples
+    #st = time.time()
+    #_ss_time += time.time() - st
+
+    return scene.single_sample(Ray(mic.pos, cur_dir), max_bounces, anim=None)
+
+
+
 class Scene():
     def __init__(self, objs=None, sound_speed=343.0, db_per_doubling=-6.0):
         self.sound_speed = sound_speed
@@ -633,7 +643,7 @@ class Scene():
         else:
             self.add_obj(v)
 
-    def create_IR(self, mic_tag=None, Nsamples=50, max_bounces=25, anim=None):
+    def create_IR(self, mic_tag=None, Nsamples=50, max_bounces=25, anim=None, threads=None):
         my_mic = None
         if mic_tag is None:
             for o in self.objs:
@@ -649,19 +659,38 @@ class Scene():
 
         _ss_time = 0.0
 
-        for i in range(Nsamples):
-            if anim:
-                anim.colors["ray"] = (1.0 * i /Nsamples, 1.0 - 1.0 * i / Nsamples, 0.0)
-            #print ("%d" % i)
-            cur_dir = 2.0 * math.pi * i / Nsamples
-            st = time.time()
-            cur_IR = self.single_sample(Ray(my_mic.pos, cur_dir), max_bounces, anim)
-            _ss_time += time.time() - st
-            if total_IR is None:
-                total_IR = cur_IR
-            else:
-                total_IR = total_IR + cur_IR
-        
+        if threads == 0 or threads == None or threads == 1:
+            for i in range(Nsamples):
+                if anim:
+                    anim.colors["ray"] = (1.0 * i /Nsamples, 1.0 - 1.0 * i / Nsamples, 0.0)
+                #print ("%d" % i)
+                cur_dir = 2.0 * math.pi * i / Nsamples
+                st = time.time()
+                cur_IR = self.single_sample(Ray(my_mic.pos, cur_dir), max_bounces, anim)
+                _ss_time += time.time() - st
+                if total_IR is None:
+                    total_IR = cur_IR
+                else:
+                    total_IR = total_IR + cur_IR
+        else:
+            # multithreaded approach
+
+
+            pool = multiprocessing.Pool(threads)
+            args = []
+            for i in range(Nsamples):
+                args += [(self, my_mic, i, max_bounces, Nsamples)]
+            coll_IR = pool.starmap(scene_proc, tuple(args))
+
+            # combine
+            for c in coll_IR:
+                if total_IR is None:
+                    total_IR = c
+                else:
+                    total_IR = total_IR + c
+
+
+
         #print ("individual samples took: %f" % (_ss_time / Nsamples))
 
         return total_IR
